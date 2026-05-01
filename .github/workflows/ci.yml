@@ -18,8 +18,8 @@ jobs:
     name: Lint + typecheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -39,8 +39,8 @@ jobs:
         shardIndex: [1, 2]
         shardTotal: [2]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -56,7 +56,7 @@ jobs:
 
       - name: Upload blob report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: blob-report-${{ matrix.shardIndex }}
           path: blob-report
@@ -64,7 +64,7 @@ jobs:
 
       - name: Upload Allure results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: allure-results-${{ matrix.shardIndex }}
           path: allure-results
@@ -76,15 +76,15 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
       - run: npm ci
 
       - name: Download blob reports from all shards
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: all-blob-reports
           pattern: blob-report-*
@@ -95,33 +95,39 @@ jobs:
 
       - name: Upload merged Playwright HTML report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: playwright-html-report
           path: playwright-report/
           retention-days: 14
 
       - name: Download Allure results from all shards
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: allure-results
           pattern: allure-results-*
           merge-multiple: true
 
-      - name: Checkout gh-pages (best-effort, may not exist on first run)
-        if: always()
-        uses: actions/checkout@v4
-        continue-on-error: true
-        with:
-          ref: gh-pages
-          path: gh-pages-dir
-
-      - name: Merge prior Allure history into results
+      # Restore prior Allure history from gh-pages so the dashboard shows trends.
+      # Single shell step that detects the branch's existence first — never errors,
+      # never produces a red "X" on first run when gh-pages doesn't exist yet.
+      - name: Restore prior Allure history (best-effort)
         if: always()
         run: |
           mkdir -p allure-results/history
-          if [ -d "gh-pages-dir/history" ]; then
-            cp -r gh-pages-dir/history/* allure-results/history/ || true
+          if git ls-remote --exit-code --heads "https://github.com/${{ github.repository }}" gh-pages > /dev/null 2>&1; then
+            echo "gh-pages branch exists — fetching prior history/"
+            tmpdir=$(mktemp -d)
+            git clone --depth=1 --branch=gh-pages --single-branch \
+              "https://github.com/${{ github.repository }}" "$tmpdir" || true
+            if [ -d "$tmpdir/history" ]; then
+              cp -r "$tmpdir/history/." allure-results/history/ || true
+              echo "history merged"
+            else
+              echo "gh-pages exists but contains no history/ directory yet"
+            fi
+          else
+            echo "gh-pages branch does not exist yet — skipping history restore (first run)"
           fi
 
       - name: Generate Allure report
@@ -130,7 +136,7 @@ jobs:
 
       - name: Upload Allure report artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: allure-report
           path: allure-report/
@@ -142,7 +148,7 @@ jobs:
     if: always() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: allure-report
           path: allure-report
