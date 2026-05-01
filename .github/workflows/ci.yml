@@ -84,7 +84,7 @@ jobs:
       - run: npm ci
 
       - name: Download blob reports from all shards
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           path: all-blob-reports
           pattern: blob-report-*
@@ -102,7 +102,7 @@ jobs:
           retention-days: 14
 
       - name: Download Allure results from all shards
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           path: allure-results
           pattern: allure-results-*
@@ -148,7 +148,7 @@ jobs:
     if: always() && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           name: allure-report
           path: allure-report
