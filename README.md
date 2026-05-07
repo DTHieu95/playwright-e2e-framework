@@ -10,6 +10,16 @@ End-to-end and API test framework built with Playwright + TypeScript. Demonstrat
 
 🔗 **Live test report:** https://dthieu95.github.io/playwright-e2e-framework/
 
+## Why This Framework
+
+This is the framework I've refined across 3+ years building E2E automation for UK fintech and enterprise clients — including:
+
+- **Scaled a similar architecture from 0 → 3,000+ tests** at 98% daily pass rate
+- **Cut regression cycles from 1 week to 1–2 days** for client release cadence
+- **Reduced single-ticket regression from 1–2 hours to 15–20 minutes** (~85% time saved) on a legacy .NET 4 app
+
+This open-source version is the cleaned-up, public-friendly reference that demonstrates the patterns without client-specific code.
+
 ## Highlights
 
 - **Playwright 1.x + TypeScript** with `strict`, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noUnusedLocals/Parameters`
