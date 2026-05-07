@@ -4,6 +4,7 @@
 [![Playwright](https://img.shields.io/badge/Playwright-1.x-2EAD33?logo=playwright)](https://playwright.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript)](https://www.typescriptlang.org/)
 [![Allure Report](https://img.shields.io/badge/Allure-Live%20Report-FF6E00?logo=qameta)](https://dthieu95.github.io/playwright-e2e-framework/)
+[![Visual Regression](https://img.shields.io/badge/Visual%20Regression-Playwright-2EAD33?logo=playwright)](#visual-regression)
 
 End-to-end and API test framework built with Playwright + TypeScript. Demonstrates modern Page Object Model patterns with fixture-injected page objects, component composition, and a CI/CD pipeline that publishes a live Allure report to GitHub Pages on every push to `main`.
 
@@ -97,6 +98,72 @@ The [CI workflow](.github/workflows/ci.yml) has four jobs:
 2. **`test`** — runs in parallel across 2 shards using Playwright's built-in sharding (`--shard=1/2`, `--shard=2/2`). Each shard emits a [blob report](https://playwright.dev/docs/test-sharding#blob-reports). All 6 projects are exercised on every shard.
 3. **`merge-reports`** — downloads blob reports from all shards, calls `playwright merge-reports --reporter html` to assemble a single HTML report, and combines per-shard Allure results before generating the Allure dashboard with prior-run trend history merged in from the `gh-pages` branch.
 4. **`publish-allure`** — runs only on `main`. Publishes the Allure report to the `gh-pages` branch via `peaceiris/actions-gh-pages@v4`. Pages serves it at the badge URL above.
+
+## Visual Regression
+
+Pixel-level UI regression coverage on 5 critical screens, run on chromium desktop + Pixel 5 mobile (10 baselines total). Powered by Playwright's built-in `toHaveScreenshot()` with deterministic-rendering safeguards.
+
+### What's covered
+
+| Page                 | Snapshot                    | Project                   |
+| -------------------- | --------------------------- | ------------------------- |
+| Login                | `login-empty`               | visual-chromium / -mobile |
+| Inventory            | `inventory-products-loaded` | visual-chromium / -mobile |
+| Cart (1 item)        | `cart-with-one-item`        | visual-chromium / -mobile |
+| Checkout (info form) | `checkout-info-form-empty`  | visual-chromium / -mobile |
+| Checkout (complete)  | `checkout-thank-you`        | visual-chromium / -mobile |
+
+### How it works
+
+A `visualSnapshot` fixture (in `src/fixtures/visual.fixture.ts`) wraps `expect(page).toHaveScreenshot()` with the determinism layer most teams forget:
+
+- Waits `document.fonts.ready` to avoid FOUT-induced diffs
+- Waits the `load` state for lazy-loaded product images
+- Disables CSS animations + caret blink via injected stylesheet (belt-and-suspenders)
+- Default `maxDiffPixelRatio: 0.002` — tolerates anti-aliasing without missing real regressions
+
+Tests stay terse — fixture absorbs the boilerplate:
+
+```ts
+test('cart visual baseline', async ({ loginPage, inventoryPage, cartPage, visualSnapshot }) => {
+  await loginPage.goto();
+  await loginPage.loginAs(standardUser);
+  await inventoryPage.addProductToCart('Sauce Labs Backpack');
+  await inventoryPage.header.openCart();
+  await visualSnapshot('cart-with-one-item');
+});
+```
+
+### Running locally
+
+> ⚠️ Visual baselines are generated on Linux (Ubuntu CI). Running visual tests on Windows or macOS produces false diffs due to font rendering. Always run visual tests in the official Playwright Docker image.
+
+```bash
+# Compare against committed baselines (Windows cmd; on Linux/macOS replace %cd% with $(pwd))
+npm run test:visual
+
+# Regenerate baselines locally (after intentional UI change)
+npm run test:visual:update
+```
+
+### Updating baselines via CI (recommended)
+
+When an intentional UI change requires baseline updates:
+
+1. Open Actions → **Update Visual Baselines** workflow
+2. Click **Run workflow** → select branch + project → run
+3. CI regenerates PNGs and commits them back to the branch
+4. Pull, review the diff, merge
+
+This avoids needing Docker locally and keeps baselines authoritative-from-CI.
+
+### Why this pattern
+
+Visual regression is high-leverage but fails ~60% of teams who try it: most stop after their second flaky-baseline incident. The pattern in this repo addresses the three usual failure modes:
+
+1. **Cross-OS font rendering** — solved by anchoring baselines to Linux CI
+2. **Animation / lazy-load flake** — solved by deterministic-rendering fixture
+3. **Painful baseline updates** — solved by manual `workflow_dispatch` button, not local Docker dance
 
 ## Tech Stack
 
