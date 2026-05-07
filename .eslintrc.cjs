@@ -41,6 +41,7 @@ module.exports = {
           'expectCartBadgeCount',
           'expectInCart',
           'expectNotInCart',
+          'visualSnapshot',
         ],
       },
     ],
