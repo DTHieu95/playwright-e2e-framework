@@ -69,5 +69,15 @@ export default defineConfig({
       testMatch: /tests[\\/]a11y[\\/].*\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'visual-chromium',
+      testMatch: /tests[\\/]visual[\\/].*\.visual\.spec\.ts/,
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'visual-mobile',
+      testMatch: /tests[\\/]visual[\\/].*\.visual\.spec\.ts/,
+      use: { ...devices['Pixel 5'] },
+    },
   ],
 });
