@@ -1,0 +1,50 @@
+name: Update Visual Baselines
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: Which visual project to update
+        required: false
+        default: all
+        type: choice
+        options:
+          - all
+          - visual-chromium
+          - visual-mobile
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Regenerate baselines
+        run: |
+          if [[ "${{ inputs.project }}" == "all" ]]; then
+            npx playwright test --project=visual-chromium --project=visual-mobile --update-snapshots
+          else
+            npx playwright test --project=${{ inputs.project }} --update-snapshots
+          fi
+
+      - name: Commit updated baselines
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore(visual): update baseline snapshots [skip ci]'
+          file_pattern: tests/visual/**/*.png
