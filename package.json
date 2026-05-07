@@ -7,12 +7,14 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "playwright test",
+    "test": "playwright test --project=ui-chromium --project=ui-mobile --project=ui-authed --project=api --project=a11y",
     "test:ui": "playwright test --project=ui-chromium",
     "test:mobile": "playwright test --project=ui-mobile",
     "test:api": "playwright test --project=api",
     "test:authed": "playwright test --project=ui-authed",
     "test:a11y": "playwright test --project=a11y",
+    "test:visual": "docker run --rm -v %cd%:/work -w /work mcr.microsoft.com/playwright:v1.59.1-noble npx playwright test --project=visual-chromium --project=visual-mobile",
+    "test:visual:update": "docker run --rm -v %cd%:/work -w /work mcr.microsoft.com/playwright:v1.59.1-noble npx playwright test --project=visual-chromium --project=visual-mobile --update-snapshots",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
     "test:ui-mode": "playwright test --ui",
