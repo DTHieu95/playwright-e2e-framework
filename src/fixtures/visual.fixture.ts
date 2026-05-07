@@ -15,7 +15,7 @@ export type VisualFixture = {
 
 /**
  * Determinism layer wrapping `toHaveScreenshot()`. Centralizes wait-for-fonts,
- * wait-for-network-idle, and CSS animation/caret disabling so each spec stays terse.
+ * wait-for-load-state, and CSS animation/caret disabling so each spec stays terse.
  */
 export const test = base.extend<VisualFixture>({
   visualSnapshot: async ({ page }, use) => {
@@ -24,7 +24,9 @@ export const test = base.extend<VisualFixture>({
       await page.waitForLoadState('load');
 
       // 2. Wait for web fonts so we don't snapshot a FOUT frame.
-      await page.evaluate(() => document.fonts.ready);
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+      });
 
       // 3. Belt-and-suspenders: disable CSS animations + caret blink at the
       //    page level. Playwright's animations:'disabled' option below covers
@@ -39,7 +41,7 @@ export const test = base.extend<VisualFixture>({
       });
 
       await expect(page).toHaveScreenshot(`${name}.png`, {
-        fullPage: true,
+        fullPage: !options.clip,
         animations: 'disabled',
         maxDiffPixelRatio: options.maxDiffPixelRatio ?? 0.002,
         mask: options.mask ?? [],
