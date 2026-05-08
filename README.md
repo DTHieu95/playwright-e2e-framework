@@ -78,6 +78,17 @@ That's it — the suite runs against the public saucedemo and restful-booker dem
 
 **Why an a11y allowlist instead of "fail on any violation"?** Asserting zero axe violations against any real app produces ignored test failures within a week — teams stop reading the output, then the suite stops catching real regressions. This framework documents known violations with rationale and only fails on _new_ critical/serious findings. That's the pattern that survives contact with a real product backlog.
 
+## AI-Assisted Authoring Workflow
+
+This repo encodes a structured Claude Code workflow as committed config — every claim below is backed by a file you can open:
+
+- **Research-first authoring** — `.claude/skills/research-first/` auto-invokes Context7 MCP (`resolve-library-id` + `query-docs`) before any code change, so implementations track current Playwright / allure / axe / faker APIs rather than stale training data.
+- **Live browser authoring** — `.mcp.json` registers the `@playwright/mcp` server; `.claude/skills/playwright-cli/` adds CLI-based snapshots and role-locator discovery. AI self-verifies form-submit / navigation flows in a real browser before commit.
+- **Self-verification guardrail** — `.claude/skills/self-verification-guardrail/` enforces that any AI verification must execute the _committed_ method or locator (e.g. `LoginPage.loginAs()`), not an improvised equivalent. Closes the failure mode where AI writes broken code but "passes" verification against a hand-rolled alternative.
+- **AI-assisted CI failure triage** — `.claude/skills/triage-ci-failure/` defines a fetch → categorize → propose-fix loop over `gh run` logs, Playwright traces, and Allure shard results. Replaces hours of log scrolling with a structured runbook.
+
+Project-level conventions live in `CLAUDE.md` at the root.
+
 ## Running Specific Suites
 
 | Command                                     | Purpose                                           |

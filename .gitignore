@@ -22,3 +22,6 @@ allure-report/
 .env
 .env.local
 
+# Claude Code — personal overrides only (skills/agents are committed)
+.claude/settings.local.json
+
