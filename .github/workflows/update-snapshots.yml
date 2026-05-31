@@ -44,7 +44,7 @@ jobs:
           fi
 
       - name: Commit updated baselines
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: 'chore(visual): update baseline snapshots [skip ci]'
           file_pattern: tests/visual/**/*.png
